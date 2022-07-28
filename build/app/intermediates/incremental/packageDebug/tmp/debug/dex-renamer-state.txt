@@ -1,0 +1,4 @@
+#Fri Jul 29 06:13:54 WIB 2022
+base.0=/Users/desgin/Documents/PROJECTS/learn_flutter_login/build/app/intermediates/dex/debug/mergeDexDebug/classes.dex
+renamed.0=classes.dex
+path.0=classes.dex
