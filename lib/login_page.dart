@@ -1,6 +1,9 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:learn_flutter_login/Menu.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -18,7 +21,76 @@ class LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    hidePassword = true;
+    hidePassword = false;
+  }
+
+  void onWidgetDidBuild(Function callback) {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      callback();
+    });
+  }
+
+  void loginValidation(BuildContext context) async {
+    bool isLogin = true;
+    FocusScope.of(context).requestFocus(FocusNode());
+
+    if (emailInput.text.isEmpty) {
+      isLogin = false;
+
+      onWidgetDidBuild() {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text("Email must")));
+      }
+    }
+
+    if (passwordInput.text.isEmpty) {
+      isLogin = false;
+
+      onWidgetDidBuild() {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text("Password must")));
+      }
+    }
+
+    if (isLogin) {
+      fetchLogin(context, emailInput.text, passwordInput.text);
+    }
+  }
+
+  fetchLogin(BuildContext context, String email, String password) async {
+    final pref = await SharedPreferences.getInstance();
+    try {
+      Response response;
+      var dio = Dio();
+      response = await dio.post(
+        'https://reqres.in/api/login',
+        data: {
+          'email': email,
+          'password': password
+        },
+        options: Options(contentType: Headers.jsonContentType),
+      );
+
+
+      if(response.statusCode == 200){
+      print("faffawawf");
+        String prefEmail = email;
+        String prefToken = response.data['token'];
+        await pref.setString('email', prefEmail);
+        await pref.setString('token', prefToken);
+
+        onWidgetDidBuild(() {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('login success')));
+        });
+      }
+
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const Menu()));
+
+      
+    } on DioError catch (e) {
+      print("login gagal cuk");
+      
+    }
   }
 
   @override
@@ -89,7 +161,9 @@ class LoginPageState extends State<LoginPage> {
               margin: EdgeInsets.only(top: 30),
               width: MediaQuery.of(context).size.width,
               child: MaterialButton(
-                onPressed: () {},
+                onPressed: () {
+                  loginValidation(context);
+                },
                 child: Text("Login now"),
               ),
             ),
@@ -110,7 +184,6 @@ class LoginPageState extends State<LoginPage> {
               ),
             )
           ],
-          
         ),
       ),
     );
