@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:learn_flutter_login/Menu.dart';
+import 'package:learn_flutter_login/utlis/user_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
@@ -15,6 +16,7 @@ class LoginPage extends StatefulWidget {
 class LoginPageState extends State<LoginPage> {
   final emailInput = TextEditingController();
   final passwordInput = TextEditingController();
+  String tokenVal = '';
   late bool hidePassword;
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -22,6 +24,17 @@ class LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     hidePassword = false;
+    init();
+  }
+
+  Future init() async {
+    final token = await UserSecureStorage.getToken() ?? '';
+    if(token != null && token.isNotEmpty){
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const Menu()));
+    }
+    setState(() {
+      this.tokenVal = token;
+    });
   }
 
   void onWidgetDidBuild(Function callback) {
@@ -64,32 +77,27 @@ class LoginPageState extends State<LoginPage> {
       var dio = Dio();
       response = await dio.post(
         'https://reqres.in/api/login',
-        data: {
-          'email': email,
-          'password': password
-        },
+        data: {'email': email, 'password': password},
         options: Options(contentType: Headers.jsonContentType),
       );
 
-
-      if(response.statusCode == 200){
-      print("faffawawf");
+      if (response.statusCode == 200) {
         String prefEmail = email;
         String prefToken = response.data['token'];
         await pref.setString('email', prefEmail);
         await pref.setString('token', prefToken);
+        await UserSecureStorage.setToken(prefToken.toString());
 
         onWidgetDidBuild(() {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('login success')));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text('login success')));
         });
       }
 
       Navigator.of(context).push(MaterialPageRoute(builder: (context) => const Menu()));
 
-      
     } on DioError catch (e) {
       print("login gagal cuk");
-      
     }
   }
 
@@ -107,6 +115,8 @@ class LoginPageState extends State<LoginPage> {
                 padding: EdgeInsets.all(10),
                 child: Column(
                   children: [
+                    Text("asu"),
+                    Text(tokenVal),
                     SizedBox(
                       height: 20,
                     ),
