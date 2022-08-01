@@ -30,7 +30,7 @@ class LoginPageState extends State<LoginPage> {
   Future init() async {
     final token = await UserSecureStorage.getToken() ?? '';
     if(token != null && token.isNotEmpty){
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const Menu()));
+      // Navigator.of(context).push(MaterialPageRoute(builder: (context) => const Menu()));
     }
     setState(() {
       this.tokenVal = token;
